@@ -11,9 +11,11 @@ use function dirname;
 use function function_exists;
 use function get_field;
 use function get_option;
+use function get_post_meta;
 use function get_transient;
 use function load_plugin_textdomain;
 use function set_transient;
+use function unserialize;
 use function update_option;
 use function var_dump;
 use function version_compare;
@@ -67,9 +69,7 @@ class Licence {
 			add_action( 'admin_notices', [ $this, 'invalid_key_notice' ] );
 		}
 
-		if ( function_exists( 'get_field' ) && ! empty( get_field( 'api_key', 'options' ) ) ) {
-			add_action( 'admin_notices', [ $this, 'empty_key_notice' ] );
-		} elseif ( empty( get_option( 'openagenda4wp_api' ) ) ) {
+		if ( empty( get_option( 'thfo_api_key' ) ) ) {
 			add_action( 'admin_notices', [ $this, 'empty_key_notice' ] );
 		}
 
@@ -181,7 +181,7 @@ class Licence {
 		}
 
 
-		$url          = "THFO_WEBSITE_URL/wp-json/lmfwc/v2/licenses/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
+		$url          = THFO_WEBSITE_URL . "/wp-json/lmfwc/v2/licenses/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
 		$decoded_body = $this->get_decoded_body( $url );
 		if ( $decoded_body['success'] && $this->is_allowed_to_activate() ) {
 			set_transient( 'thfo_license_key_valid', true, DAY_IN_SECONDS * 1 );
@@ -277,7 +277,7 @@ class Licence {
 
 	public function deactivate_key() {
 		if ( ! empty( $_GET['activate'] ) && '2' === $_GET['activate'] && wp_verify_nonce( $_GET['_wpnonce'], 'validate' ) ) {
-			$url      = "THFO_WEBSITE_URL/wp-json/lmfwc/v2/licenses/deactivate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
+			$url      = THFO_WEBSITE_URL . "/wp-json/lmfwc/v2/licenses/deactivate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
 			$activate = $this->get_decoded_body( $url );
 			if ( $activate['success'] ) {
 				delete_option( 'thfo_key_validated' );
@@ -294,7 +294,7 @@ class Licence {
 			return;
 		}
 		if ( ! empty( $_GET['activate'] ) && '1' === $_GET['activate'] && wp_verify_nonce( $_GET['_wpnonce'], 'validate' ) ) {
-			$url      = "THFO_WEBSITE_URL/wp-json/lmfwc/v2/licenses/activate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
+			$url      = THFO_WEBSITE_URL . "/wp-json/lmfwc/v2/licenses/activate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
 			$activate = $this->get_decoded_body( $url );
 			if ( $activate['success'] ) {
 				update_option( 'thfo_key_validated', '1' );
@@ -310,10 +310,12 @@ class Licence {
 		if ( ! $this->is_activated() ) {
 			?>
             <div class="notice notice-error">
-                <p><?php _e( 'Please activate your OpenAgenda WP Pro licence key', 'openwp_licence' ); ?></p>
-                <p>
-                    <a href="<?php echo admin_url( 'options-general.php?page=openagenda-settings' ); ?>"><?php _e( 'Settings', 'openwp_licence' ); ?></a>
-                </p>
+	            <h3>
+		            <?php
+	            echo $this->plugin_name;
+	            ?>
+	            </h3>
+                <p><?php _e( 'Please activate your licence key', 'openwp_licence' ); ?></p>
             </div>
 			<?php
 		}
