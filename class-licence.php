@@ -56,6 +56,12 @@ class Licence {
 		$this->order_id       = $this->set_order_id();
 		$this->product_id     = $this->set_product_id();
 
+		/**
+		 * Define here the correct URL
+		 * Website URL with Licence manager for WooCommerce.
+		 */
+		define( 'THFO_WEBSITE_URL', 'https://thivinfo.com' );
+
 		add_action( 'acf/save_post', [ $this, 'launch_check' ], 15 );
 		if ( ! $this->check_key_validity() ) {
 			add_action( 'admin_notices', [ $this, 'invalid_key_notice' ] );
@@ -84,7 +90,7 @@ class Licence {
 	}
 
 	public function get_key_access() {
-		$url          = "https://thivinfo.com/wp-json/lmfwc/v2/licenses/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
+		$url          = THFO_WEBSITE_URL . "/wp-json/lmfwc/v2/licenses/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
 		$decoded_body = $this->get_decoded_body( $url );
 
 		return $decoded_body["data"];
@@ -175,7 +181,7 @@ class Licence {
 		}
 
 
-		$url          = "https://thivinfo.com/wp-json/lmfwc/v2/licenses/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
+		$url          = "THFO_WEBSITE_URL/wp-json/lmfwc/v2/licenses/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
 		$decoded_body = $this->get_decoded_body( $url );
 		if ( $decoded_body['success'] && $this->is_allowed_to_activate() ) {
 			set_transient( 'thfo_license_key_valid', true, DAY_IN_SECONDS * 1 );
@@ -222,7 +228,7 @@ class Licence {
 		}
 		$product_data = get_transient( 'thfo_license_product_data' . $product_id );
 		if ( empty( $product_data ) ) {
-			$url          = "https://thivinfo.com/wp-json/wc/v3/products/$product_id?consumer_key=ck_0e7d2eddb58ea1a2d56212e1042dbeb0511274c3&consumer_secret=cs_b0b9fb497e534026e45d2ce2335b8297fe90ead9";
+			$url          = THFO_WEBSITE_URL . "/wp-json/wc/v3/products/$product_id?consumer_key=$this->ck&consumer_secret=$this->cs";
 			$product_data = $this->get_decoded_body( $url );
 			set_transient( 'thfo_license_product_data' . $product_id, $product_data, DAY_IN_SECONDS * 1 );
 		}
@@ -240,7 +246,7 @@ class Licence {
 	}
 
 	public function is_allowed_to_activate() {
-		$url     = "https://thivinfo.com/wp-json/lmfwc/v2/licenses/validate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
+		$url     = "THFO_WEBSITE_URL/wp-json/lmfwc/v2/licenses/validate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
 		$decoded = $this->get_decoded_body( $url );
 		$nb      = $decoded['data']['timesActivated'];
 		$nb_max  = $decoded['data']['timesActivatedMax'];
@@ -271,7 +277,7 @@ class Licence {
 
 	public function deactivate_key() {
 		if ( ! empty( $_GET['activate'] ) && '2' === $_GET['activate'] && wp_verify_nonce( $_GET['_wpnonce'], 'validate' ) ) {
-			$url      = "https://thivinfo.com/wp-json/lmfwc/v2/licenses/deactivate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
+			$url      = "THFO_WEBSITE_URL/wp-json/lmfwc/v2/licenses/deactivate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
 			$activate = $this->get_decoded_body( $url );
 			if ( $activate['success'] ) {
 				delete_option( 'thfo_key_validated' );
@@ -288,7 +294,7 @@ class Licence {
 			return;
 		}
 		if ( ! empty( $_GET['activate'] ) && '1' === $_GET['activate'] && wp_verify_nonce( $_GET['_wpnonce'], 'validate' ) ) {
-			$url      = "https://thivinfo.com/wp-json/lmfwc/v2/licenses/activate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
+			$url      = "THFO_WEBSITE_URL/wp-json/lmfwc/v2/licenses/activate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
 			$activate = $this->get_decoded_body( $url );
 			if ( $activate['success'] ) {
 				update_option( 'thfo_key_validated', '1' );
@@ -329,7 +335,7 @@ class Licence {
 		if ( false == $remote = get_transient( "thfo_upgrade_$this->slug" ) ) {
 
 			// info.json is the file with the actual plugin information on your server
-			$remote = wp_remote_get( "https://thivinfo.com/$this->plugin_name.json", array(
+			$remote = wp_remote_get( "THFO_WEBSITE_URL/$this->plugin_name.json", array(
 					'timeout' => 10,
 					'headers' => array(
 						'Accept' => 'application/json'
