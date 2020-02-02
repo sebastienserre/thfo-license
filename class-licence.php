@@ -7,6 +7,7 @@ use function add_action;
 use function admin_url;
 use function class_exists;
 use function delete_option;
+use function dirname;
 use function function_exists;
 use function get_field;
 use function get_option;
@@ -14,12 +15,14 @@ use function get_transient;
 use function load_plugin_textdomain;
 use function set_transient;
 use function update_option;
+use function var_dump;
 use function version_compare;
 use function wp_remote_get;
 use function wp_remote_retrieve_body;
 use function wp_remote_retrieve_response_code;
 use function wp_verify_nonce;
 use const DAY_IN_SECONDS;
+use const THFO_PLUGIN_NAME;
 use const THFO_PLUGIN_VERSION;
 use const THFO_CONSUMER_KEY;
 use const THFO_CONSUMER_SECRET;
@@ -77,7 +80,7 @@ class Licence {
 	 * TextDomain for this class and only it is "openwp_licence"
 	 */
 	public function load_textdomain() {
-		load_plugin_textdomain( 'openwp_licence', false, $this->plugin_name . '/languages' );
+		load_plugin_textdomain( 'openwp_licence', false, THFO_PLUGIN_NAME . '/licence/lang' );
 	}
 
 	public function get_key_access() {
