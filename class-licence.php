@@ -313,6 +313,14 @@ class Licence {
 		}
 	}
 
+	/**
+     * https://rudrastyh.com/wordpress/self-hosted-plugin-update.html
+	 * @param $transient
+	 *
+	 * @author  Sébastien SERRE
+	 * @package wp-pericles-import
+	 * @since   1.4.0
+	 */
 	public function push_update( $transient ) {
 		if ( ! $this->is_activated() ) {
 			return;
@@ -339,7 +347,6 @@ class Licence {
 
 			$remote = json_decode( $remote['body'] );
 
-			// your installed plugin version should be on the line below! You can obtain it dynamically of course
 			if ( $remote && version_compare( $this->plugin_version, $remote->version, '<' ) && version_compare( $remote->requires,
 					get_bloginfo( 'version' ), '<' ) ) {
 				$res                                 = new \stdClass();
