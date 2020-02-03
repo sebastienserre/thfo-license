@@ -29,6 +29,7 @@ use const THFO_PLUGIN_VERSION;
 use const THFO_CONSUMER_KEY;
 use const THFO_CONSUMER_SECRET;
 use const THFO_OPENWP_PLUGIN_FILE;
+use const THFO_WEBSITE_URL;
 use const WP_PLUGIN_ID;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -194,7 +195,15 @@ class Licence {
 	}
 
 	public function invalid_key_notice() {
+		if ( $this->is_activated() ){
+			$url      = THFO_WEBSITE_URL . "/wp-json/lmfwc/v2/licenses/deactivate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
+			$activate = $this->get_decoded_body( $url );
+			if ( $activate['success'] ) {
+				delete_option( 'thfo_key_validated' );
 
+				return true;
+			}
+		}
 		?>
         <div class="notice notice-error">
 
@@ -208,7 +217,15 @@ class Licence {
 	}
 
 	public function empty_key_notice() {
+		if ( $this->is_activated() ){
+			$url      = THFO_WEBSITE_URL . "/wp-json/lmfwc/v2/licenses/deactivate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
+			$activate = $this->get_decoded_body( $url );
+			if ( $activate['success'] ) {
+				delete_option( 'thfo_key_validated' );
 
+				return true;
+			}
+		}
 		?>
         <div class="notice notice-error">
 
@@ -246,7 +263,7 @@ class Licence {
 	}
 
 	public function is_allowed_to_activate() {
-		$url     = "THFO_WEBSITE_URL/wp-json/lmfwc/v2/licenses/validate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
+		$url     = THFO_WEBSITE_URL . "/wp-json/lmfwc/v2/licenses/validate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
 		$decoded = $this->get_decoded_body( $url );
 		$nb      = $decoded['data']['timesActivated'];
 		$nb_max  = $decoded['data']['timesActivatedMax'];
@@ -337,7 +354,7 @@ class Licence {
 		if ( false == $remote = get_transient( "thfo_upgrade_$this->slug" ) ) {
 
 			// info.json is the file with the actual plugin information on your server
-			$remote = wp_remote_get( "THFO_WEBSITE_URL/$this->plugin_name.json", array(
+			$remote = wp_remote_get( THFO_WEBSITE_URL . "/$this->plugin_name.json", array(
 					'timeout' => 10,
 					'headers' => array(
 						'Accept' => 'application/json'
