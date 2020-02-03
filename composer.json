@@ -1,0 +1,16 @@
+{
+  "name": "thfo/thfo-license",
+  "description": "This little PHP Class allow you to manage API Key Validity and update your premium WordPress Plugins.",
+  "license": "GPL-2.0",
+  "authors": [
+    {
+      "name": "Thivinfo",
+      "email": "support@thivinfo.com",
+      "homepage": "https://thivinfo.com"
+    }
+  ],
+  "type" : "library",
+  "require" : {
+    "composer/installers" : "~1.0"
+  }
+}
