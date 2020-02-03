@@ -1,23 +1,21 @@
 <?php
+/**
+ * @package Licence Thivinfo
+ * @version 1.0.0
+ */
 
 namespace THFO\Licence;
 
 use function _e;
 use function add_action;
-use function admin_url;
-use function class_exists;
 use function delete_option;
-use function dirname;
 use function function_exists;
 use function get_field;
 use function get_option;
-use function get_post_meta;
 use function get_transient;
 use function load_plugin_textdomain;
 use function set_transient;
-use function unserialize;
 use function update_option;
-use function var_dump;
 use function version_compare;
 use function wp_remote_get;
 use function wp_remote_retrieve_body;
@@ -36,6 +34,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 } // Exit if accessed directly.
 
+/**
+ * Class Licence
+ *
+ * @package Licence
+ * @author  Sébastien SERRE
+ * @since   1.0.0
+ */
 class Licence {
 	private $ck;
 	private $cs;
@@ -90,6 +95,12 @@ class Licence {
 		load_plugin_textdomain( 'openwp_licence', false, THFO_PLUGIN_NAME . '/licence/lang' );
 	}
 
+	/**
+	 * @return array retrun from API
+	 * @author  Sébastien SERRE
+	 * @package License
+	 * @since   1.0.0
+	 */
 	public function get_key_access() {
 		$url          = THFO_WEBSITE_URL . "/wp-json/lmfwc/v2/licenses/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
 		$decoded_body = $this->get_decoded_body( $url );
@@ -97,6 +108,12 @@ class Licence {
 		return $decoded_body["data"];
 	}
 
+	/**
+	 * @return string WooCommerce Order ID
+	 * @author  Sébastien SERRE
+	 * @package License
+	 * @since   1.0.0
+	 */
 	public function get_order_id() {
 		$orderid = get_transient( 'thfo_license_order_id' );
 		if ( empty( $orderid ) ) {
@@ -108,11 +125,23 @@ class Licence {
 		return $orderid;
 	}
 
+	/**
+	 * @return string WooCommerce Product ID
+	 * @author  Sébastien SERRE
+	 * @package License
+	 * @since   1.0.0
+	 */
 	public function set_product_id() {
 		$product_id = $this->get_product_id();
 		return $product_id;
 	}
 
+	/**
+	 * @return string WooCommerce Product ID
+	 * @author  Sébastien SERRE
+	 * @package License
+	 * @since   1.0.0
+	 */
 	public function get_product_id() {
 		$productid = get_transient( 'thfo_license_product_id' );
 		if ( empty( $productid ) ) {
@@ -124,6 +153,12 @@ class Licence {
 		return $productid;
 	}
 
+	/**
+	 * @return string WooCommerce Order ID
+	 * @author  Sébastien SERRE
+	 * @package License
+	 * @since   1.0.0
+	 */
 	public function set_order_id() {
 		$order_id = $this->get_order_id();
 
@@ -137,7 +172,10 @@ class Licence {
 	}
 
 	/**
-	 * @return mixed
+	 * @return string Get License Key
+	 * @author  Sébastien SERRE
+	 * @package License
+	 * @since   1.0.0
 	 */
 	public function getKey() {
 		$key = get_transient( 'thfo_license_key' );
@@ -176,11 +214,16 @@ class Licence {
 		return false;
 	}
 
+	/**
+	 * @return bool Is Key valid or not ?
+	 * @author  Sébastien SERRE
+	 * @package License
+	 * @since   1.0.0
+	 */
 	public function check_key_validity() {
 		if ( true === get_transient( 'thfo_license_key_valid' ) ) {
 			return true;
 		}
-
 
 		$url          = THFO_WEBSITE_URL . "/wp-json/lmfwc/v2/licenses/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
 		$decoded_body = $this->get_decoded_body( $url );
@@ -194,6 +237,12 @@ class Licence {
 		return false;
 	}
 
+	/**
+	 * @return bool If key invalid and activated => deactivate
+	 * @author  Sébastien SERRE
+	 * @package License
+	 * @since   1.0.0
+	 */
 	public function invalid_key_notice() {
 		if ( $this->is_activated() ){
 			$url      = THFO_WEBSITE_URL . "/wp-json/lmfwc/v2/licenses/deactivate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
@@ -216,6 +265,12 @@ class Licence {
 		<?php
 	}
 
+	/**
+	 * @return bool If key empty and activated => deactivate
+	 * @author  Sébastien SERRE
+	 * @package License
+	 * @since   1.0.0
+	 */
 	public function empty_key_notice() {
 		if ( $this->is_activated() ){
 			$url      = THFO_WEBSITE_URL . "/wp-json/lmfwc/v2/licenses/deactivate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
@@ -239,6 +294,14 @@ class Licence {
 		<?php
 	}
 
+	/**
+	 * @param string $product_id optional
+	 *
+	 * @return array Data Products from API
+	 * @author  Sébastien SERRE
+	 * @package wp-openagenda-pro
+	 * @since   1.0.0
+	 */
 	public function get_product_data( $product_id = '' ) {
 		if ( empty( $product_id ) ) {
 			$product_id = WP_PLUGIN_ID;
@@ -284,6 +347,13 @@ class Licence {
 
 	}
 
+	/**
+     * Is License is activated or not
+	 * @return bool
+	 * @author  Sébastien SERRE
+	 * @package License
+	 * @since   1.0.0
+	 */
 	public function is_activated() {
 		if ( ! empty( get_option( 'thfo_key_validated' ) && '1' === get_option( 'thfo_key_validated' ) ) ) {
 			return true;
