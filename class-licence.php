@@ -119,7 +119,7 @@ class Licence {
 		if ( empty( $orderid ) ) {
 			$decoded_body = $this->get_key_access();
 			$orderid      = $decoded_body['orderId'];
-			set_transient( 'thfo_license_order_id', $orderid, DAY_IN_SECONDS * 10 );
+			set_transient( 'thfo_license_order_id', $orderid, DAY_IN_SECONDS * 1 );
 		}
 
 		return $orderid;
@@ -147,7 +147,7 @@ class Licence {
 		if ( empty( $productid ) ) {
 			$decoded_body = $this->get_key_access();
 			$productid    = $decoded_body["productId"];
-			set_transient( 'thfo_license_product_id', $productid, DAY_IN_SECONDS * 10 );
+			set_transient( 'thfo_license_product_id', $productid, DAY_IN_SECONDS * 1 );
 		}
 
 		return $productid;
@@ -185,7 +185,7 @@ class Licence {
 			} elseif ( ! empty( get_option( 'openagenda4wp_api' ) ) ) {
 				$key = get_option( 'openagenda4wp_api' );
 			}
-			set_transient( 'thfo_license_key', $key, DAY_IN_SECONDS * 10 );
+			set_transient( 'thfo_license_key', $key, DAY_IN_SECONDS * 1 );
 		}
 
 		return $key;
