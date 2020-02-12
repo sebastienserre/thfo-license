@@ -64,12 +64,6 @@ class Licence {
 		$this->order_id       = $this->set_order_id();
 		$this->product_id     = $this->set_product_id();
 
-		/**
-		 * Define here the correct URL
-		 * Website URL with Licence manager for WooCommerce.
-		 */
-		define( 'THFO_WEBSITE_URL', 'https://thivinfo.com' );
-
 		add_action( 'acf/save_post', [ $this, 'launch_check' ], 15 );
 		if ( ! $this->check_key_validity() ) {
 			add_action( 'admin_notices', [ $this, 'invalid_key_notice' ] );
