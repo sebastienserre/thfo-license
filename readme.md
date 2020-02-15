@@ -44,3 +44,24 @@ Add a setting fields to let your customer enter the API Key
 	}
 ```
 Feel free to adapt it according your needs.
+
+## Constants
+Several Constant need to be declared on main plugin file.
+
+		// Licence Manager for WooCommerce Consumer Key
+		define( 'THFO_CONSUMER_KEY', 'XXXXX' );
+		
+		// Licence Manager for WooCommerce Consumer Key
+		define( 'THFO_CONSUMER_SECRET', 'XXXX' );
+	
+		// WooCommerce Rest API Consumer Key
+		define( 'THFO_WC_CONSUMER_KEY', 'XXXXX' );
+		
+		// WooCommerce Rest API Consumer Secret
+		define( 'THFO_WC_CONSUMER_SECRET', 'XXXXX' );
+	
+	    // WooCommerce Product ID
+		define( 'WP_PLUGIN_ID', 'XXXX' );
+		
+		// WooCommerce Product Website URL
+		define( 'THFO_WEBSITE_URL', 'XXXXX' );
