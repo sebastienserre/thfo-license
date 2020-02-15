@@ -23,6 +23,7 @@ use function wp_remote_retrieve_body;
 use function wp_remote_retrieve_response_code;
 use function wp_verify_nonce;
 use const DAY_IN_SECONDS;
+use const HOUR_IN_SECONDS;
 use const THFO_PLUGIN_NAME;
 use const THFO_PLUGIN_VERSION;
 use const THFO_CONSUMER_KEY;
@@ -45,6 +46,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Licence {
 	private $ck;
 	private $cs;
+	private $wcck;
+	private $wccs;
 	private $key;
 	private $product_id;
 	private $order_id;
@@ -57,6 +60,8 @@ class Licence {
 	public function __construct() {
 		$this->ck             = THFO_CONSUMER_KEY;
 		$this->cs             = THFO_CONSUMER_SECRET;
+		$this->wcck           = THFO_WC_CONSUMER_KEY;
+		$this->wccs           = THFO_WC_CONSUMER_SECRET;
 		$this->plugin_version = THFO_PLUGIN_VERSION;
 		$this->plugin         = THFO_OPENWP_PLUGIN_FILE;
 		$this->slug           = THFO_SLUG;
@@ -200,15 +205,13 @@ class Licence {
 	}
 
 	public function get_decoded_body( $url ) {
-		$decoded_body = get_transient( 'thfo_license_decoded' . $url );
-		if ( empty( $decoded_body ) ) {
-			$response = wp_remote_get( $url );
-			if ( 200 === (int) wp_remote_retrieve_response_code( $response ) ) {
-				$body         = wp_remote_retrieve_body( $response );
-				$decoded_body = json_decode( $body, true );
-				set_transient( 'thfo_license_decoded' . $url, $decoded_body, DAY_IN_SECONDS * 1 );
-			}
+
+		$response = wp_remote_get( $url );
+		if ( 200 === (int) wp_remote_retrieve_response_code( $response ) ) {
+			$body         = wp_remote_retrieve_body( $response );
+			$decoded_body = json_decode( $body, true );
 		}
+
 		if ( ! empty( $decoded_body ) ) {
 			return $decoded_body;
 		}
@@ -223,19 +226,18 @@ class Licence {
 	 * @since   1.0.0
 	 */
 	public function check_key_validity() {
-		if ( true === get_transient( 'thfo_license_key_valid' ) ) {
+	    $validity = get_transient( 'thfo_license_key_valid' );
+		if ( '1' === $validity ) {
 			return true;
 		}
 
 		$url          = THFO_WEBSITE_URL . "/wp-json/lmfwc/v2/licenses/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
 		$decoded_body = $this->get_decoded_body( $url );
 		if ( $decoded_body['success'] && $this->is_allowed_to_activate() ) {
-			set_transient( 'thfo_license_key_valid', true, DAY_IN_SECONDS * 1 );
+			set_transient( 'thfo_license_key_valid', '1', DAY_IN_SECONDS * 1 );
 
 			return true;
 		}
-		set_transient( 'thfo_license_key_valid', false, DAY_IN_SECONDS * 1 );
-
 		return false;
 	}
 
@@ -310,7 +312,7 @@ class Licence {
 		}
 		$product_data = get_transient( 'thfo_license_product_data' . $product_id );
 		if ( empty( $product_data ) ) {
-			$url          = THFO_WEBSITE_URL . "/wp-json/wc/v3/products/$product_id?consumer_key=$this->ck&consumer_secret=$this->cs";
+			$url          = THFO_WEBSITE_URL . "/wp-json/wc/v3/products/$product_id?consumer_key=$this->wcck&consumer_secret=$this->wccs";
 			$product_data = $this->get_decoded_body( $url );
 			set_transient( 'thfo_license_product_data' . $product_id, $product_data, DAY_IN_SECONDS * 1 );
 		}
@@ -320,19 +322,26 @@ class Licence {
 
 	public function get_version() {
 		$decoded_body = $this->get_product_data();
+		if ( !empty( get_transient( 'version_' . $decoded_body['id'] ) ) ){
+		    return get_transient( 'version_' . $decoded_body['id'] );
+        }
 		if ( ! empty( $decoded_body["tags"] ) ) {
 			$version = $decoded_body["tags"][0]["name"];
-
+			set_transient( 'version_' . $decoded_body['id'], $version);
 			return $version;
 		}
 	}
 
 	public function is_allowed_to_activate() {
+	    if ( '1' === get_transient( 'openwp_allowed2activate' ) ){
+	        return true;
+        }
 		$url     = THFO_WEBSITE_URL . "/wp-json/lmfwc/v2/licenses/validate/$this->key?consumer_key=$this->ck&consumer_secret=$this->cs";
 		$decoded = $this->get_decoded_body( $url );
 		$nb      = $decoded['data']['timesActivated'];
 		$nb_max  = $decoded['data']['timesActivatedMax'];
 		if ( $nb <= $nb_max ) {
+			set_transient( 'openwp_allowed2activate', '1', HOUR_IN_SECONDS * 4 );
 			return true;
 		}
 
