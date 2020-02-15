@@ -16,6 +16,7 @@ use function get_transient;
 use function load_plugin_textdomain;
 use function set_transient;
 use function update_option;
+use function var_dump;
 use function version_compare;
 use function wp_remote_get;
 use function wp_remote_retrieve_body;
@@ -68,7 +69,7 @@ class Licence {
 		 * Define here the correct URL
 		 * Website URL with Licence manager for WooCommerce.
 		 */
-		define( 'THFO_WEBSITE_URL', 'https://thivinfo.com' );
+
 
 		add_action( 'acf/save_post', [ $this, 'launch_check' ], 15 );
 		if ( ! $this->check_key_validity() ) {
@@ -85,6 +86,7 @@ class Licence {
 		add_action( 'admin_init', [ $this, 'activate_deactivate' ] );
 		add_filter( 'site_transient_update_plugins', [ $this, 'push_update' ] );
 		add_action( 'init', [ $this, 'load_textdomain' ] );
+		add_action( 'admin_init', [ $this, 'save_options' ] );
 	}
 
 	/**
@@ -182,8 +184,8 @@ class Licence {
 		if ( empty( $key ) ) {
 			if ( function_exists( 'get_field' ) && ! empty( get_field( 'api_key', 'options' ) ) ) {
 				$key = get_field( 'api_key', 'options' );
-			} elseif ( ! empty( get_option( 'openagenda4wp_api' ) ) ) {
-				$key = get_option( 'openagenda4wp_api' );
+			} elseif ( ! empty( get_option( 'thfo_api_key' ) ) ) {
+				$key = get_option( 'thfo_api_key' );
 			}
 			set_transient( 'thfo_license_key', $key, DAY_IN_SECONDS * 1 );
 		}
@@ -355,11 +357,17 @@ class Licence {
 	 * @since   1.0.0
 	 */
 	public function is_activated() {
-		if ( ! empty( get_option( 'thfo_key_validated' ) && '1' === get_option( 'thfo_key_validated' ) ) ) {
+		if ( $this->is_allowed_to_activate() ) {
 			return true;
 		}
 
 		return false;
+	}
+
+	public function save_options() {
+		if ( ! empty( $_POST ) && 'dashboard-wp' === $_POST['option_page'] && ! $this->is_activated() ) {
+			$delete = delete_option( 'thfo_key_validated' );
+		}
 	}
 
 	public function deactivate_key() {
