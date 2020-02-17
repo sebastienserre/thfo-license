@@ -374,7 +374,7 @@ class Licence {
 	}
 
 	public function save_options() {
-		if ( ! empty( $_POST ) && 'dashboard-wp' === $_POST['option_page'] && ! $this->is_activated() ) {
+		if ( ! empty( $_POST['option_page'] ) && 'dashboard-wp' === $_POST['option_page'] && ! $this->is_activated() ) {
 			$delete = delete_option( 'thfo_key_validated' );
 		}
 	}
